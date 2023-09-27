@@ -47,8 +47,14 @@ class MapHandler(commands.Cog):
                 if tryPath.exists():
                     self.mapsPath = str(tryPath)
                     break
-        if self.mapsPath is None or len(self.mapsPath) == 0 or not Path(self.mapsPath).is_dir():
-            self.bot.log.error(f"Map path {self.mapsPath} not found and/or no suitable default")
+        if (
+            self.mapsPath is None
+            or len(self.mapsPath) == 0
+            or not Path(self.mapsPath).is_dir()
+        ):
+            self.bot.log.error(
+                f"Map path {self.mapsPath} not found and/or no suitable default"
+            )
         else:
             self.bot.log.info(f"Maps path: {self.mapsPath}")
 
@@ -80,12 +86,16 @@ class MapHandler(commands.Cog):
                                 points = []
                                 for point in coordinates.findall("point"):
                                     points.append(
-                                        (int(point.get("x")), int(point.get("y")))
+                                        (
+                                            int(point.get("x")),
+                                            int(point.get("y")),
+                                        )
                                     )
                             for properties in feature.findall("properties"):
                                 for property in properties.findall("property"):
                                     draw.polygon(
-                                        points, fill=colours[property.get("value")]
+                                        points,
+                                        fill=colours[property.get("value")],
                                     )
 
         draw.polygon(

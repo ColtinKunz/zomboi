@@ -36,7 +36,9 @@ zomboi = commands.bot.Bot("!", intents=intents)
 logFormat = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
 discordLogger = logging.getLogger("discord")
 discordLogger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
+handler = logging.FileHandler(
+    filename="discord.log", encoding="utf-8", mode="w"
+)
 handler.setFormatter(logFormat)
 discordLogger.addHandler(handler)
 
@@ -57,7 +59,9 @@ zomboi.log.setLevel(logging.DEBUG)
 async def on_ready():
     zomboi.log.info(f"We have logged in as {zomboi.user}")
     channel = os.getenv("CHANNEL")
-    zomboi.channel = zomboi.get_channel(int(channel)) if channel.isdigit() else None  # Find by id
+    zomboi.channel = (
+        zomboi.get_channel(int(channel)) if channel.isdigit() else None
+    )  # Find by id
     if zomboi.channel is None:
         zomboi.channel = discord.utils.get(
             zomboi.get_all_channels(), name=channel

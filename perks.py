@@ -37,7 +37,9 @@ class PerkHandler(commands.Cog):
                     if timestamp > newTimestamp:
                         newTimestamp = timestamp
                     if timestamp > self.lastUpdateTimestamp:
-                        message = self.handleLog(timestamp, message, fromUpdate=True)
+                        message = self.handleLog(
+                            timestamp, message, fromUpdate=True
+                        )
                         if message is not None and self.bot.channel is not None:
                             await self.bot.channel.send(message)
                     else:
@@ -67,19 +69,24 @@ class PerkHandler(commands.Cog):
         name, message = message.split("]", 1)
         userHandler = self.bot.get_cog("UserHandler")
         user = userHandler.getUser(name)
-        char_name = userHandler.getCharName(name) if fromUpdate and user else None
-        log_char_string = 'aka ' + char_name + ' ' if char_name else ''
+        char_name = (
+            userHandler.getCharName(name) if fromUpdate and user else None
+        )
+        log_char_string = "aka " + char_name + " " if char_name else ""
 
         # Then position which we set if it's more recent
         x = message[1 : message.find(",")]
-        y = message[message.find(",") + 1 : message.find(",", message.find(",") + 1)]
+        y = message[
+            message.find(",") + 1 : message.find(",", message.find(",") + 1)
+        ]
         message = message[message.find("[", 2) + 1 :]
 
         if timestamp > user.lastSeen:
             user.lastSeen = timestamp
             user.lastLocation = (x, y)
 
-        # Then the message type, can be "Died", "Login", "Level Changed" or a list of perks
+        # Then the message type, can be "Died", "Login", "Level Changed"
+        # or a list of perks
         type, message = message.split("]", 1)
 
         # All these logs should include hours survived
@@ -93,19 +100,29 @@ class PerkHandler(commands.Cog):
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"{user.name} died")
                 if self.notifyDeath:
-                    return f":zombie: {user.name} {log_char_string}died after surviving {user.hoursAlive} hours :dizzy_face:"
+                    return (
+                        f":zombie: {user.name} {log_char_string}died after "
+                        f"surviving {user.hoursAlive} hours :dizzy_face:"
+                    )
         elif type == "Login":
             if timestamp > self.lastUpdateTimestamp:
                 user.online = True
                 self.bot.log.info(f"{user.name} login")
                 if self.notifyJoin:
-                    return f":person_doing_cartwheel: {user.name} {log_char_string}has arrived, survived for {user.hoursAlive} hours so far..."
+                    return (
+                        f":person_doing_cartwheel: {user.name} "
+                        f"{log_char_string}has arrived, survived for "
+                        f"{user.hoursAlive} hours so far..."
+                    )
         elif "Created Player" in type:
             if timestamp > self.lastUpdateTimestamp:
                 user.online = True
                 self.bot.log.info(f"{user.name} new character")
                 if self.notifyCreateChar:
-                    return f":person_raising_hand: {user.name} {log_char_string}just woke up in the Apocalypse..."
+                    return (
+                        f":person_raising_hand: {user.name} "
+                        f"{log_char_string}just woke up in the Apocalypse..."
+                    )
         elif type == "Level Changed":
             match = re.search(r"\[(\w+)\]\[(\d+)\]", message)
             perk = match.group(1)
@@ -114,8 +131,11 @@ class PerkHandler(commands.Cog):
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"{user.name} {perk} changed to {level}")
                 if self.notifyPerk:
-                    return f":chart_with_upwards_trend: {user.name} {log_char_string}reached {perk} level {level}"
+                    return (
+                        f":chart_with_upwards_trend: {user.name} "
+                        f"{log_char_string}reached {perk} level {level}"
+                    )
         else:
             # Must be a list of perks following a login/player creation
-            for (name, value) in re.findall(r"(\w+)=(\d+)", type):
+            for name, value in re.findall(r"(\w+)=(\d+)", type):
                 user.perks[name] = value

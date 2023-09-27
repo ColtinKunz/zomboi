@@ -61,7 +61,9 @@ class ChatHandler(commands.Cog):
                     if webhook.user == self.bot.user:
                         self.webhook = webhook
             if self.webhook is None:
-                self.webhook = await self.bot.channel.create_webhook(name="zomboi")
+                self.webhook = await self.bot.channel.create_webhook(
+                    name="zomboi"
+                )
             name = match.group(1)
             avatar_url = None
             for member in self.bot.get_all_members():

@@ -13,6 +13,7 @@ import sqlite3
 
 DISCORD_MAX_CHAR = 2000
 
+
 @dataclass
 class User:
     """A class representing a user"""
@@ -57,17 +58,29 @@ class UserHandler(commands.Cog):
         """Looks through the db file to find the name of the user's character"""
         # Needs to sleep to let database update after new character creation
         from time import sleep
+
         sleep(5)
         try:
-            playerdb = Path(os.getenv("SAVES_PATH")).joinpath("players.db") if os.getenv("SAVES_PATH") else Path.home().joinpath("Zomboid/Saves/Multiplayer/pzserver").joinpath("players.db")
+            playerdb = (
+                Path(os.getenv("SAVES_PATH")).joinpath("players.db")
+                if os.getenv("SAVES_PATH")
+                else Path.home()
+                .joinpath("Zomboid/Saves/Multiplayer/pzserver")
+                .joinpath("players.db")
+            )
             if not playerdb.is_file():
-                self.bot.log.error("Zomboid saves path was set incorrectly. Please check your environment variables")
-                return ''
+                self.bot.log.error(
+                    "Zomboid saves path was set incorrectly. Please check "
+                    "your environment variables"
+                )
+                return ""
             # Connect to the sqlite player db
             con = sqlite3.connect(str(playerdb))
             cur = con.cursor()
             # check the networkPlayers table
-            cur.execute('SELECT name FROM networkPlayers WHERE username = ?', [name])
+            cur.execute(
+                "SELECT name FROM networkPlayers WHERE username = ?", [name]
+            )
             charName = cur.fetchone()
             charName = charName[0] if charName else None
             con.close()
@@ -96,9 +109,13 @@ class UserHandler(commands.Cog):
                 self.lastUpdateTimestamp = newTimestamp
 
         # Also update the bot activity here
-        onlineCount = len([user for user in self.users if self.users[user].online])
+        onlineCount = len(
+            [user for user in self.users if self.users[user].online]
+        )
         if onlineCount != self.onlineCount:
-            playerString = "nobody" if onlineCount == 0 else f"{onlineCount} survivors"
+            playerString = (
+                "nobody" if onlineCount == 0 else f"{onlineCount} survivors"
+            )
             # have to abbreviate or it gets truncated
             await self.bot.change_presence(
                 activity=discord.Game(f"PZ with {playerString}")
@@ -117,7 +134,8 @@ class UserHandler(commands.Cog):
         self.bot.log.info("User history loaded")
 
     def handleLog(self, timestamp: datetime, message: str):
-        """Parse the log message and store any useful info. Returns a message string if relevant"""
+        """Parse the log message and store any useful info. Returns a message
+        string if relevant"""
 
         if "disconnected" in message:
             matches = re.search(r"\"(.*)\".*\((\d+),(\d+),\d+\)", message)
@@ -156,9 +174,9 @@ class UserHandler(commands.Cog):
         """
         table = []
         headers = ["Name", "Online", "Last Seen", "Hours survived"]
-        # if the number of users is over 28 (two messages), then only show online users
-        num_users = len(self.users.values())
-        show_all = True if arg and arg.lower() == 'all' else False
+        # if the number of users is over 28 (two messages), then only
+        # show online users
+        show_all = True if arg and arg.lower() == "all" else False
         for user in self.users.values():
             if show_all or user.online:
                 table.append(
@@ -175,21 +193,26 @@ class UserHandler(commands.Cog):
         messages = [table]
         x = 0
         for message in messages:
-            while len(f'```\n{tabulate(messages[x], headers=headers, tablefmt="fancy_grid")}\n```') > DISCORD_MAX_CHAR:
+            tabulated_messages = tabulate(
+                messages[x], headers=headers, tablefmt="fancy_grid"
+            )
+            while len(f"```\n{tabulated_messages}\n```") > DISCORD_MAX_CHAR:
                 if x == len(messages) - 1:
                     messages.append([])
-                messages[x+1].append(messages[x][-1])
+                messages[x + 1].append(messages[x][-1])
                 messages[x] = messages[x][0:-1]
-            await ctx.send(
-                f'```\n{tabulate(messages[x], headers=headers, tablefmt="fancy_grid")}\n```'
+            retabulated_messages = tabulate(
+                messages[x], headers=headers, tablefmt="fancy_grid"
             )
+            await ctx.send(f"```\n{retabulated_messages}\n```")
             x += 1
 
     @commands.command()
     async def info(self, ctx, name=None):
         """Get detailed user info
 
-        Provide a username, or leave blank to show the user matching your discord name
+        Provide a username, or leave blank to show the user matching your
+        discord name
         """
         if name is None:
             name = ctx.author.name
@@ -204,9 +227,13 @@ class UserHandler(commands.Cog):
                 ]
             )
             table.append(["Online", "Yes" if user.online else "No"])
-            table.append(["Last Seen", user.lastSeen.strftime("%d/%m at %H:%M")])
+            table.append(
+                ["Last Seen", user.lastSeen.strftime("%d/%m at %H:%M")]
+            )
             table.append(["Deaths", len(user.died)])
             for perk in user.perks:
                 if int(user.perks[perk]) != 0:
                     table.append([perk, user.perks[perk]])
-            await ctx.send(f'```\n{tabulate(table, tablefmt="fancy_grid")}\n```')
+            await ctx.send(
+                f'```\n{tabulate(table, tablefmt="fancy_grid")}\n```'
+            )

@@ -12,6 +12,7 @@ from perks import PerkHandler
 from users import UserHandler
 from admin import AdminLogHandler
 from rcon_adapter import RCONAdapter
+from server import ServerHandler
 
 load_dotenv(override=True)
 
@@ -76,6 +77,7 @@ async def on_ready():
     await zomboi.add_cog(RCONAdapter(zomboi))
     await zomboi.add_cog(MapHandler(zomboi))
     await zomboi.add_cog(AdminLogHandler(zomboi, logPath))
+    await zomboi.add_cog(ServerHandler(zomboi, logPath))
 
 
 # Always finally run the bot

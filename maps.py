@@ -1,7 +1,6 @@
 from datetime import datetime
 import discord
 from discord.ext import commands
-import glob
 import os
 from pathlib import Path
 import PIL.ImageDraw as ImageDraw

@@ -48,12 +48,14 @@ class AdminLogHandler(commands.Cog):
     async def update(self):
         # Don't really know how performant this will be since it's opening 4
         # files -- set it to 10 seconds loop for now
-        files = (
-            glob.glob(self.logPath + "/*map.txt")
-            + glob.glob(self.logPath + "/*cmd.txt")
-            + glob.glob(self.logPath + "/*admin.txt")
-            + glob.glob(self.logPath + "/*ClientActionLog.txt")
-        )
+        file_types = ["map.txt", "cmd.txt", "admin.txt", "ClientActionLog.txt"]
+        files = [
+            glob.glob(f"{self.logPath}/*{file_type}")
+            for file_type in file_types
+        ]
+        files = [
+            file for sublist in files for file in sublist
+        ]  # Flatten the list of lists
         if len(files) > 0:
             newTimestamps = []
             for file in files:
@@ -63,10 +65,7 @@ class AdminLogHandler(commands.Cog):
                         if timestamp > self.lastUpdateTimestamp:
                             newTimestamps.append(timestamp)
                             message = f"[{str(timestamp)}]: " + message
-                            if (
-                                message is not None
-                                and self.adminChannel is not None
-                            ):
+                            if message and self.adminChannel:
                                 await self.adminChannel.send(message)
                         else:
                             break

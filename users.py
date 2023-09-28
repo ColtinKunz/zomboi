@@ -44,7 +44,7 @@ class UserHandler(commands.Cog):
 
     def getUser(self, name: str):
         """Get a user from a name, will create if it doesn't exist"""
-        if not name in self.users:
+        if name not in self.users:
             self.users[name] = User(name)
         return self.users[name]
 

@@ -1,9 +1,11 @@
-from discord.ext import tasks, commands
-from discord.ext.commands import has_permissions
 import os
-from rcon.source import Client, rcon
 import re
 from datetime import datetime
+
+import discord
+from discord.ext import tasks, commands
+from discord.ext.commands import has_permissions
+from rcon.source import Client, rcon
 
 
 class RCONAdapter(commands.Cog):
@@ -51,7 +53,11 @@ class RCONAdapter(commands.Cog):
                     await ctx.send(f"```\n{message}\n```")
                 else:
                     await ctx.send("No matches found")
-            except:
+            except discord.HTTPException:
+                await ctx.send("Unable to send message")
+            except Exception as e:
+                # Log the exception for debugging
+                self.bot.log.error(f"Error while sending message: {str(e)}")
                 await ctx.send("Unable to send message")
 
     @commands.command()
@@ -103,16 +109,18 @@ class RCONAdapter(commands.Cog):
         userHandler = self.bot.get_cog("UserHandler")
         for user in userHandler.users.values():
             if user.name in response:
-                if user.online == False:
+                if user.online is False:
                     self.bot.log.info(
-                        f"Player {user.name} out of sync, currently offline, should be online, fixing..."
+                        f"Player {user.name} out of sync, currently offline, "
+                        "should be online, fixing..."
                     )
                 user.lastSeen = datetime.now()
                 user.online = True
             else:
-                if user.online == True:
+                if user.online is True:
                     self.bot.log.info(
-                        f"Player {user.name} out of sync, currently online, should be offline, fixing..."
+                        f"Player {user.name} out of sync, currently online, "
+                        "should be offline, fixing..."
                     )
                 user.online = False
         self.bot.log.info("Synced players successfully!")

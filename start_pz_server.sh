@@ -16,4 +16,4 @@ sleep 5
 # Start the server again
 $SERVER_START_COMMAND
 
-echo "Server restarted successfully."
+echo "Server started successfully."

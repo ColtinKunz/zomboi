@@ -29,26 +29,28 @@ class ServerHandler(commands.Cog):
 
     @commands.command()
     @has_permissions(administrator=True)
-    async def manual_restart(self, ctx):
+    async def manual_start(self, ctx):
         if not self.restart_server.is_running():
-            self.restart_server.start()
-            await ctx.send("Manually restarting server.")
+            # Restart the server using the shell script
+            SERVER_START_COMMAND = os.getenv("START_SERVER_COMMAND")
+            os.system(f"./start_pz_server.sh '{SERVER_START_COMMAND}' &")
+            await ctx.send("Manually starting server.")
         else:
-            await ctx.send("Already restarting")
+            await ctx.send("Server restart in progress.")
+
+    async def send_server_message(self, message: str):
+        """Send a message to the server."""
+        with Client(
+            self.rconHost,
+            self.rconPort,
+            passwd=self.rconPassword,
+            timeout=5.0,
+        ) as client:
+            client.run(f'/servermsg "{message}"')
 
     @tasks.loop(hours=24)
     async def restart_server(self):
         """Restart the Project Zomboid server every 24 hours."""
-
-        async def send_server_message(self, message: str):
-            """Send a message to the server."""
-            with Client(
-                self.rconHost,
-                self.rconPort,
-                passwd=self.rconPassword,
-                timeout=5.0,
-            ) as client:
-                client.run(f'/servermsg "{message}"')
 
         # Send restart message in Discord once
         await self.bot.channel.send("Server will restart in 5 minutes.")
@@ -106,13 +108,11 @@ class ServerHandler(commands.Cog):
         # Check for the server start message
         if "SERVER STARTED" in message:
             # Handle server start here. For instance:
-            if self.adminChannel:
-                await self.adminChannel.send("Server has started!")
+            await self.bot.channel.send("Server has started!")
             return
 
         # Check for the server end message
         if "Trying to close low level socket support" in message:
             # Handle server end here. For instance:
-            if self.adminChannel:
-                await self.adminChannel.send("Server is shutting down!")
+            await self.bot.channel.send("Server is shutting down!")
             return
